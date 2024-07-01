@@ -1,54 +1,58 @@
 const express = require('express');
 const axios = require('axios');
+const requestIp = require('request-ip');
+require('dotenv').config();
+
 const app = express();
+const port = process.env.PORT || 8080;
 
-
-require("dotenv").config();
-const port = process.env.PORT;
-
-
-
+// Middleware to get client IP address
+app.use(requestIp.mw());
 
 app.get('/api/hello', async (req, res) => {
-    const visitorName = req.query.visitor_name;
+  const visitorName = req.query.visitor_name || "Guest";
+  const ip = req.clientIp;
 
-    if (!visitorName) {
-        return res.status(400).json({ error: 'visitor_name query parameter is required' });
-    }
-
-    try {
-        const clientIp = req.ip === '::1' ? '127.0.0.1' : req.ip; // Handle local development
-        const locationResponse = await axios.get(`https://ipapi.co/${clientIp}/json/`);
-
-        let city = locationResponse.data.city;
-
-        if (locationResponse.data.error || !city) {
-            city = 'New York'; // Default city
-        }
-
-        const weatherResponse = await axios.get(`http://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${process.env.OPENWEATHERMAP_API_KEY}`);
-        const { temp } = weatherResponse.data.main;
-
-        const greeting = `Hello, ${visitorName}!, the temperature is ${temp} degrees Celsius in ${city}`;
-
-        res.json({
-            client_ip: clientIp,
-            location: city,
-            greeting
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'An error occurred' });
-    }
-});
-app.get("/", (req, res) => {
+  // Check if IP is localhost or a bogon
+  if (ip === '::1' || ip === '127.0.0.1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.16.') || ip.startsWith('172.31.')) {
     return res.json({
-      status: true,
-      message: "Hello, you are   welcome" 
+      client_ip: ip,
+      location: "Unknown",
+      greeting: `Hello, ${visitorName}!, we cannot determine your location as your IP address is local or reserved.`
     });
-  });
-  
+  }
+
+  try {
+    // Get geolocation data
+    const geoResponse = await axios.get(`https://ipinfo.io/${ip}?token=${process.env.IPINFO_TOKEN}`);
+    const city = geoResponse.data.city || "Unknown";
+
+    if (geoResponse.data.bogon) {
+      return res.json({
+        client_ip: ip,
+        location: "Unknown",
+        greeting: `Hello, ${visitorName}!, we cannot determine your location as your IP address is reserved.`
+      });
+    }
+
+    // Get weather data
+    const weatherResponse = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${process.env.OPENWEATHERMAP_KEY}&units=metric`);
+    const temperature = weatherResponse.data.main.temp;
+
+    // Formulate the response
+    const response = {
+      client_ip: ip,
+      location: city,
+      greeting: `Hello, ${visitorName}!, the temperature is ${temperature} degrees Celsius in ${city}`
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error fetching data');
+  }
+});
 
 app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server is running on port ${port}`);
 });
