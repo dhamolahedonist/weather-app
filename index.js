@@ -41,6 +41,13 @@ app.get('/api/hello', async (req, res) => {
         res.status(500).json({ error: 'An error occurred' });
     }
 });
+app.get("/", (req, res) => {
+    return res.json({
+      status: true,
+      message: "Hello, you are   welcome" 
+    });
+  });
+  
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
