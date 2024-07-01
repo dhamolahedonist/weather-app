@@ -36,7 +36,8 @@ app.get('/api/hello', async (req, res) => {
     }
 
     // Get weather data
-    const weatherResponse = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${process.env.OPENWEATHERMAP_KEY}&units=metric`);
+    // const weatherResponse = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${process.env.OPENWEATHERMAP_KEY}&units=metric`);
+    const weatherResponse = await axios.get(`http://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${process.env.OPENWEATHERMAP_API_KEY}`);
     const temperature = weatherResponse.data.main.temp;
 
     // Formulate the response
