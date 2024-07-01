@@ -1,0 +1,12 @@
+{
+  "apps": [
+    {
+      "app_id": "app_5c4be615-dd01-4786-9e0d-e4d8a372bbe9",
+      "org_id": "user_d50fb95c-c246-4cd9-9595-04fd02e302e7",
+      "deploy_url": "https://push-n3-par-clevercloud-customers.services.clever-cloud.com/app_5c4be615-dd01-4786-9e0d-e4d8a372bbe9.git",
+      "git_ssh_url": "git+ssh://git@push-n3-par-clevercloud-customers.services.clever-cloud.com/app_5c4be615-dd01-4786-9e0d-e4d8a372bbe9.git",
+      "name": "weather-app",
+      "alias": "weather-app"
+    }
+  ]
+}
